@@ -8,7 +8,7 @@ export default class Group{
     measure:math.Fraction;
     fraction:math.Fraction;
     delay:math.Fraction;
-    notes:Note[];
+    notes:Note[] = [];
 
     constructor(option:GroupOption){
         this.bpm = option.bpm;
