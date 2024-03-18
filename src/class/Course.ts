@@ -71,7 +71,7 @@ export default class Course {
 
     groupize(){
         let currentGroup:Group|undefined = undefined;
-        this.notes.forEach((note, i) => {
+        this.notes.filter(note => note.type < 5).forEach((note) => {
             if(currentGroup === undefined){
                 let {bpm, scroll, realScroll, measure, fraction, delay} = note;
                 currentGroup = new Group({bpm, scroll, realScroll, measure, fraction, delay});
