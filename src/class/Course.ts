@@ -7,6 +7,7 @@ export default class Course {
     readonly difficulty: string
     readonly level: number;
     private notes: Note[] = [];
+    private noRollNotes: Note[] = [];
     private groups: Group[] = [];
 
 
@@ -67,11 +68,20 @@ export default class Course {
             }
         }
         this.notes = this.notes.filter(note => note.type !== 0);
+
+        this.noRollNotes = noteOptions.map(option => new Note(option));
+        for (let i = this.noRollNotes.length - 1; i > 0; i--) {
+            if (this.noRollNotes[i].type === 0 || this.noRollNotes[i].type === 5 || this.noRollNotes[i].type === 6 ||this.noRollNotes[i].type === 7 || this.noRollNotes[i].type === 8) {
+                this.noRollNotes[i - 1].delay = math.add(this.noRollNotes[i].delay, this.noRollNotes[i - 1].delay);
+                this.noRollNotes[i - 1].fraction = math.add(this.noRollNotes[i-1].fraction, math.fraction(1, this.noRollNotes[i-1].fraction.d))
+            }
+        }
+        this.noRollNotes = this.noRollNotes.filter(note => note.type !== 0 && note.type !== 5 && note.type !== 6 && note.type !== 7 && note.type !== 8);
     }
 
     groupize(){
         let currentGroup:Group|undefined = undefined;
-        this.notes.filter(note => note.type < 5).forEach((note) => {
+        this.noRollNotes.forEach((note) => {
             if(currentGroup === undefined){
                 let {bpm, scroll, realScroll, measure, fraction, delay} = note;
                 currentGroup = new Group({bpm, scroll, realScroll, measure, fraction, delay});
