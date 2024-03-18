@@ -7,10 +7,7 @@ export default class Course {
     readonly level: number;
     private _notes: Note[];
 
-    constructor(course: TjaCourse, bpm: number) {
-        this.difficulty = course.difficulty.toString();
-        this.level = course.stars;
-
+    getNotes(course: TjaCourse, bpm: number) {
         const { singleCourse } = course;
         let _bpm = math.fraction(bpm);
         let scroll = math.fraction(1);
@@ -42,7 +39,7 @@ export default class Course {
                                     fraction: math.fraction(1, currentBar.length)
                                 }
                             }
-                        ));
+                            ));
                         currentBar = [];
                     }
                     else {
@@ -60,15 +57,19 @@ export default class Course {
         this._notes = noteOptions.map(option => {
             return new Note(option);
         })
-        /*
-        for(let i = this._notes.length - 1; i > 0; i--){
-            if(this._notes[i].type === 0){
-                this._notes[i-1].delay = math.add(this._notes[i].delay, this._notes[i-1].delay);
+        for (let i = this._notes.length - 1; i > 0; i--) {
+            if (this._notes[i].type === 0) {
+                this._notes[i - 1].delay = math.add(this._notes[i].delay, this._notes[i - 1].delay);
             }
         }
-
         this._notes = this._notes.filter(note => note.type !== 0);
-        */
+    }
+
+    constructor(course: TjaCourse, bpm: number) {
+        this.difficulty = course.difficulty.toString();
+        this.level = course.stars;
+
+        this.getNotes(course, bpm);
     }
 }
 
