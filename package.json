@@ -1,8 +1,11 @@
 {
   "dependencies": {
-    "@hotsixman/tja": "^0.1.0"
+    "@hotsixman/tja": "^0.1.0",
+    "@types/mathjs": "^9.4.2",
+    "mathjs": "^12.4.1"
   },
   "devDependencies": {
+    "@types/node": "^20.11.28",
     "typescript": "^5.4.2"
   }
 }
