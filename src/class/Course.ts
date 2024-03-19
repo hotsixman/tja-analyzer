@@ -58,6 +58,7 @@ export default class Course {
             }
         })
 
+        //비어있는 구간의 딜레이를 앞 노트의 딜레이에 결합
         this.notes = noteOptions.map(option => {
             return new Note(option);
         })
@@ -69,6 +70,7 @@ export default class Course {
         }
         this.notes = this.notes.filter(note => note.type !== 0);
 
+        //연타구간도 결합
         this.noRollNotes = noteOptions.map(option => new Note(option));
         for (let i = this.noRollNotes.length - 1; i > 0; i--) {
             if (this.noRollNotes[i].type === 0 || this.noRollNotes[i].type === 5 || this.noRollNotes[i].type === 6 ||this.noRollNotes[i].type === 7 || this.noRollNotes[i].type === 8) {
@@ -110,6 +112,21 @@ export default class Course {
 
         this.getNotes(course, bpm);
         this.groupize();
+    }
+
+    getDifficultyScore(){
+        let complexity = this.groups.map(group => math.tanh(math.divide(group.getComplexity().valueOf(), 2500)));
+        let densityDifficulty = this.groups.map(group => math.tanh(math.divide(group.getDensityDifficulty().valueOf() as number, 3000)));
+        let length = this.groups.map(group => math.divide(math.erf(math.divide(group.notes.length, 50)), 20));
+        let multiplied = complexity.map((e, i) => math.multiply(math.multiply(math.multiply(e, 20), math.multiply(densityDifficulty[i], 20)), length).valueOf() as number);
+        let sum = math.sum(multiplied)
+        return {
+            difficulty: this.difficulty,
+            sum,
+            //score: math.round(math.multiply(math.tanh(math.divide(math.sqrt(math.sqrt(sum).valueOf() as number), 2.3).valueOf() as number), 100), 2)
+            score: math.round(math.multiply(math.tanh(math.divide(math.sqrt(math.sqrt(sum).valueOf() as number ), 2).valueOf() as number), 100), 2)
+            //multiplied,
+        }
     }
 }
 

@@ -5,6 +5,10 @@ export default class Fumen{
     private _song:Song;
     private _courses:Course[] = [];
 
+    getDifficultyScore(){
+        return this._courses.map(course => course.getDifficultyScore())
+    }
+
     constructor(tja:string){
         this._song = TJAParser.parse(tja);
 
