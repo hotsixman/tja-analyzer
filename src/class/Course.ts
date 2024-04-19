@@ -9,9 +9,27 @@ export default class Course {
     private notes: Note[] = [];
     private noRollNotes: Note[] = [];
     private groups: Group[] = [];
+    private minRealScroll:math.Fraction;
+    private maxRealScroll:math.Fraction;
+
+    static getMinMaxRealScroll(course:Course){
+        let min = math.fraction(0);
+        let max = math.fraction(0);
+
+        course.notes.forEach(note => {
+            if(math.compare(note.realScroll, min) === -1){
+                min = math.fraction(note.realScroll)
+            }
+            if(math.compare(note.realScroll, max) === 1){
+                max = math.fraction(note.realScroll)
+            }
+        })
+
+        return [min, max];
+    }
 
 
-    getNotes(course: TjaCourse, bpm: number) {
+    static getNotes(course: TjaCourse, bpm: number) {
         const { singleCourse } = course;
         let _bpm = math.fraction(bpm);
         let scroll = math.fraction(1);
@@ -59,35 +77,37 @@ export default class Course {
         })
 
         //비어있는 구간의 딜레이를 앞 노트의 딜레이에 결합
-        this.notes = noteOptions.map(option => {
+        let notes = noteOptions.map(option => {
             return new Note(option);
         })
-        for (let i = this.notes.length - 1; i > 0; i--) {
-            if (this.notes[i].type === 0) {
-                this.notes[i - 1].delay = math.add(this.notes[i].delay, this.notes[i - 1].delay);
-                this.notes[i - 1].fraction = math.add(this.notes[i-1].fraction, math.fraction(1, this.notes[i-1].fraction.d))
+        for (let i = notes.length - 1; i > 0; i--) {
+            if (notes[i].type === 0) {
+                notes[i - 1].delay = math.add(notes[i].delay, notes[i - 1].delay);
+                notes[i - 1].fraction = math.add(notes[i-1].fraction, math.fraction(1, notes[i-1].fraction.d))
             }
         }
-        this.notes = this.notes.filter(note => note.type !== 0);
+        notes = notes.filter(note => note.type !== 0);
 
         //연타구간도 결합
-        this.noRollNotes = noteOptions.map(option => new Note(option));
-        for (let i = this.noRollNotes.length - 1; i > 0; i--) {
-            if (this.noRollNotes[i].type === 0 || this.noRollNotes[i].type === 5 || this.noRollNotes[i].type === 6 ||this.noRollNotes[i].type === 7 || this.noRollNotes[i].type === 8) {
-                this.noRollNotes[i - 1].delay = math.add(this.noRollNotes[i].delay, this.noRollNotes[i - 1].delay);
-                this.noRollNotes[i - 1].fraction = math.add(this.noRollNotes[i-1].fraction, math.fraction(1, this.noRollNotes[i-1].fraction.d))
+        let noRollNotes = noteOptions.map(option => new Note(option));
+        for (let i = noRollNotes.length - 1; i > 0; i--) {
+            if (noRollNotes[i].type === 0 || noRollNotes[i].type === 5 || noRollNotes[i].type === 6 ||noRollNotes[i].type === 7 || noRollNotes[i].type === 8) {
+                noRollNotes[i - 1].delay = math.add(noRollNotes[i].delay, noRollNotes[i - 1].delay);
+                noRollNotes[i - 1].fraction = math.add(noRollNotes[i-1].fraction, math.fraction(1, noRollNotes[i-1].fraction.d))
             }
         }
-        this.noRollNotes = this.noRollNotes.filter(note => note.type !== 0 && note.type !== 5 && note.type !== 6 && note.type !== 7 && note.type !== 8);
+        noRollNotes = noRollNotes.filter(note => note.type !== 0 && note.type !== 5 && note.type !== 6 && note.type !== 7 && note.type !== 8);
+
+        return [notes, noRollNotes]
     }
 
-    groupize(){
+    static groupize(thisCourse:Course){
         let currentGroup:Group|undefined = undefined;
-        this.noRollNotes.forEach((note) => {
+        thisCourse.noRollNotes.forEach((note) => {
             if(currentGroup === undefined){
                 let {bpm, scroll, realScroll, measure, fraction, delay} = note;
                 currentGroup = new Group({bpm, scroll, realScroll, measure, fraction, delay});
-                this.groups.push(currentGroup);
+                thisCourse.groups.push(currentGroup);
             }
             
             if(['bpm', 'scroll', 'realScroll', 'measure', 'fraction', 'delay'].every((key) => math.compare(((currentGroup as Group)[key as keyof Group] as math.MathType), note[key as keyof Note]).valueOf() === 0)){//모두 일치
@@ -100,7 +120,7 @@ export default class Course {
             else{
                 let {bpm, scroll, realScroll, measure, fraction, delay} = note;
                 currentGroup = new Group({bpm, scroll, realScroll, measure, fraction, delay});
-                this.groups.push(currentGroup);
+                thisCourse.groups.push(currentGroup);
                 currentGroup.notes.push(note);
             }
         })
@@ -110,8 +130,10 @@ export default class Course {
         this.difficulty = course.difficulty.toString();
         this.level = course.stars;
 
-        this.getNotes(course, bpm);
-        this.groupize();
+        [this.notes, this.noRollNotes] = Course.getNotes(course, bpm);
+        Course.groupize(this);
+
+        [this.minRealScroll, this.maxRealScroll] = Course.getMinMaxRealScroll(this)
     }
 
     getDifficultyScore(){
