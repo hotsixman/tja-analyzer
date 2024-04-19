@@ -6,13 +6,27 @@ import * as math from 'mathjs';
 export default class Course {
     readonly difficulty: string
     readonly level: number;
+    readonly playTime:math.Fraction;
     private notes: Note[] = [];
     private noRollNotes: Note[] = [];
     private groups: Group[] = [];
     private minRealScroll:math.Fraction;
     private maxRealScroll:math.Fraction;
 
-    static getMinMaxRealScroll(course:Course){
+    static getPlayTime(course:Course): math.Fraction {
+        let playTime = math.fraction(0)
+
+        course.notes.forEach((note, i, a) => {
+            if(i === a.length - 1){
+                return;
+            }
+            playTime = math.add(playTime, note.delay)
+        })
+
+        return playTime
+    }
+
+    static getMinMaxRealScroll(course:Course): [math.Fraction, math.Fraction] {
         let min = math.fraction(0);
         let max = math.fraction(0);
 
@@ -28,8 +42,8 @@ export default class Course {
         return [min, max];
     }
 
-
-    static getNotes(course: TjaCourse, bpm: number) {
+    //TjaCourse notes -> tja-anaylyzer notes
+    static getNotes(course: TjaCourse, bpm: number): [Note[], Note[]] {
         const { singleCourse } = course;
         let _bpm = math.fraction(bpm);
         let scroll = math.fraction(1);
@@ -101,7 +115,8 @@ export default class Course {
         return [notes, noRollNotes]
     }
 
-    static groupize(thisCourse:Course){
+    //groupize notes
+    static groupize(thisCourse:Course): void {
         let currentGroup:Group|undefined = undefined;
         thisCourse.noRollNotes.forEach((note) => {
             if(currentGroup === undefined){
@@ -134,6 +149,8 @@ export default class Course {
         Course.groupize(this);
 
         [this.minRealScroll, this.maxRealScroll] = Course.getMinMaxRealScroll(this)
+
+        this.playTime = Course.getPlayTime(this)
     }
 
     getDifficultyScore(){
