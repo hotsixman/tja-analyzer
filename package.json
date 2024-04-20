@@ -5,7 +5,6 @@
   "dependencies": {
     "@hotsixman/tja": "^0.1.0",
     "@types/mathjs": "^9.4.2",
-    "cubic-spline": "^3.0.3",
     "mathjs": "^12.4.1"
   },
   "devDependencies": {
