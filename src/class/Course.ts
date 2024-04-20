@@ -11,12 +11,13 @@ export default class Course {
         pure: math.Fraction;
         withBalloon: math.Fraction;
     }
+    readonly minRealScroll: math.Fraction;
+    readonly maxRealScroll: math.Fraction;
+    readonly density: math.Fraction;
     readonly balloons: number[];
     private notes: Note[] = [];
     private noRollNotes: Note[] = [];
     private groups: Group[] = [];
-    private minRealScroll: math.Fraction;
-    private maxRealScroll: math.Fraction;
 
     static getRollTime(course: Course): { pure: math.Fraction; withBalloon: math.Fraction; } {
         let pureRollTime = math.fraction(0);
@@ -190,10 +191,9 @@ export default class Course {
         [this.minRealScroll, this.maxRealScroll] = Course.getMinMaxRealScroll(this)
 
         this.playTime = Course.getPlayTime(this)
-
         this.balloons = [...course.singleCourse.balloonCounts];
-
         this.rollTime = Course.getRollTime(this);
+        this.density = math.fraction(math.divide(this.noRollNotes.length, this.playTime) as number|math.Fraction);
     }
 
     getDifficultyScore() {
