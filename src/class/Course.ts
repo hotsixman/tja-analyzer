@@ -9,6 +9,7 @@ export default class Course {
     readonly playTime: math.Fraction;
     readonly rollTime: {
         pure: math.Fraction;
+        pureList: math.Fraction[];
         withBalloon: math.Fraction;
     }
     readonly minRealScroll: math.Fraction;
@@ -20,14 +21,16 @@ export default class Course {
     readonly noRollNotes: Note[] = [];
     readonly groups: Group[] = [];
 
-    static getRollTime(course: Course): { pure: math.Fraction; withBalloon: math.Fraction; } {
+    static getRollTime(course: Course): { pure: math.Fraction; withBalloon: math.Fraction; pureList: math.Fraction[]; } {
         let pureRollTime = math.fraction(0);
+        let pureRollTimeList: math.Fraction[] = [];
         let withBalloonRollTime = math.fraction(0);
 
         let balloonIndex = 0;
 
         course.notes.forEach(note => {
             if (note.type === 5 || note.type === 6) {
+                pureRollTimeList.push(note.delay);
                 pureRollTime = math.add(pureRollTime, note.delay);
                 withBalloonRollTime = math.add(withBalloonRollTime, note.delay);
             }
@@ -41,7 +44,8 @@ export default class Course {
 
         return {
             pure: pureRollTime,
-            withBalloon: withBalloonRollTime
+            withBalloon: withBalloonRollTime,
+            pureList: pureRollTimeList
         }
     }
 
