@@ -2,18 +2,14 @@ import {Song, TJAParser} from '@hotsixman/tja';
 import Course from './Course';
 
 export default class Fumen{
-    private _song:Song;
-    private _courses:Course[] = [];
-
-    getDifficultyScore(){
-        return this._courses.map(course => course.getDifficultyScore())
-    }
+    readonly song:Song;
+    readonly courses:Course[] = [];
 
     constructor(tja:string){
-        this._song = TJAParser.parse(tja);
+        this.song = TJAParser.parse(tja);
 
-        this._song.courses.forEach(course => {
-            this._courses.push(new Course(course, this._song.bpm));
+        this.song.courses.forEach(course => {
+            this.courses.push(new Course(course, this.song.bpm));
         })
     }
 }

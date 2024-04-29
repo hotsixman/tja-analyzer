@@ -15,9 +15,10 @@ export default class Course {
     readonly maxRealScroll: math.Fraction;
     readonly density: math.Fraction;
     readonly balloons: number[];
-    private notes: Note[] = [];
-    private noRollNotes: Note[] = [];
-    private groups: Group[] = [];
+    readonly peak: math.Fraction;
+    readonly notes: Note[] = [];
+    readonly noRollNotes: Note[] = [];
+    readonly groups: Group[] = [];
 
     static getRollTime(course: Course): { pure: math.Fraction; withBalloon: math.Fraction; } {
         let pureRollTime = math.fraction(0);
@@ -58,19 +59,22 @@ export default class Course {
     }
 
     static getMinMaxRealScroll(course: Course): [math.Fraction, math.Fraction] {
-        let min = math.fraction(0);
+        let min:math.Fraction|undefined;
         let max = math.fraction(0);
 
         course.notes.forEach(note => {
-            if (math.compare(note.realScroll, min) === -1) {
+            if(min === undefined){
                 min = math.fraction(note.realScroll)
             }
-            if (math.compare(note.realScroll, max) === 1) {
+            if (math.compare(note.realScroll, min).valueOf() === -1) {
+                min = math.fraction(note.realScroll)
+            }
+            if (math.compare(note.realScroll, max).valueOf() === 1) {
                 max = math.fraction(note.realScroll)
             }
         })
 
-        return [min, max];
+        return [min as unknown as math.Fraction, max];
     }
 
     //TjaCourse notes -> tja-anaylyzer notes
@@ -137,7 +141,7 @@ export default class Course {
         for (let i = notes.length - 1; i > 0; i--) {
             if (notes[i].type === 0) {
                 notes[i - 1].delay = math.add(notes[i].delay, notes[i - 1].delay);
-                notes[i - 1].fraction = math.add(notes[i - 1].fraction, math.fraction(1, notes[i - 1].fraction.d));
+                notes[i - 1].fraction = math.add(notes[i - 1].fraction, notes[i].fraction);
             }
         }
         notes = notes.filter(note => note.type !== 0);
@@ -147,7 +151,7 @@ export default class Course {
         for (let i = noRollNotes.length - 1; i > 0; i--) {
             if (noRollNotes[i].type === 0 || noRollNotes[i].type === 5 || noRollNotes[i].type === 6 || noRollNotes[i].type === 7 || noRollNotes[i].type === 8) {
                 noRollNotes[i - 1].delay = math.add(noRollNotes[i].delay, noRollNotes[i - 1].delay);
-                noRollNotes[i - 1].fraction = math.add(noRollNotes[i - 1].fraction, math.fraction(1, noRollNotes[i - 1].fraction.d))
+                noRollNotes[i - 1].fraction = math.add(noRollNotes[i - 1].fraction, noRollNotes[i].fraction)
             }
         }
         noRollNotes = noRollNotes.filter(note => note.type !== 0 && note.type !== 5 && note.type !== 6 && note.type !== 7 && note.type !== 8);
@@ -194,21 +198,26 @@ export default class Course {
         this.balloons = [...course.singleCourse.balloonCounts];
         this.rollTime = Course.getRollTime(this);
         this.density = math.fraction(math.divide(this.noRollNotes.length, this.playTime) as number|math.Fraction);
-    }
 
-    getDifficultyScore() {
-        let complexity = this.groups.map(group => math.tanh(math.divide(group.getComplexity().valueOf(), 2500)));
-        let densityDifficulty = this.groups.map(group => math.tanh(math.divide(group.getDensityDifficulty().valueOf() as number, 3000)));
-        let length = this.groups.map(group => math.divide(math.erf(math.divide(group.notes.length, 50)), 20));
-        let multiplied = complexity.map((e, i) => math.multiply(math.multiply(math.multiply(e, 20), math.multiply(densityDifficulty[i], 20)), length).valueOf() as number);
-        let sum = math.sum(multiplied)
-        return {
-            difficulty: this.difficulty,
-            sum,
-            //score: math.round(math.multiply(math.tanh(math.divide(math.sqrt(math.sqrt(sum).valueOf() as number), 2.3).valueOf() as number), 100), 2)
-            score: math.round(math.multiply(math.tanh(math.divide(math.sqrt(math.sqrt(sum).valueOf() as number), 2).valueOf() as number), 100), 2)
-            //multiplied,
-        }
+        let peak:math.Fraction = math.fraction(0);
+        this.noRollNotes.forEach((note, i, a) => {
+            let notes = 0;
+            let j = i;
+            let delay = note.delay;
+            while(true){
+                j++;
+                if(j >= a.length) break;
+                delay = math.add(delay, a[j].delay);
+                if(math.compare(delay, 2).valueOf() === 1){
+                    break;
+                }
+                notes++;
+            }
+            if(math.compare(peak, math.fraction(notes, 2)).valueOf() === -1){
+                peak = math.fraction(notes, 2);
+            }
+        })
+        this.peak = peak;
     }
 }
 
