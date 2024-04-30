@@ -66,7 +66,7 @@ export default class Course {
         let min:math.Fraction|undefined;
         let max = math.fraction(0);
 
-        course.notes.forEach(note => {
+        course.noRollNotes.forEach(note => {
             if(min === undefined){
                 min = math.fraction(note.realScroll)
             }
