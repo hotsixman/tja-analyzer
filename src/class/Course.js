@@ -68,7 +68,7 @@ class Course {
     static getMinMaxRealScroll(course) {
         let min;
         let max = math.fraction(0);
-        course.notes.forEach(note => {
+        course.noRollNotes.forEach(note => {
             if (min === undefined) {
                 min = math.fraction(note.realScroll);
             }
