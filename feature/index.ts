@@ -1,16 +1,19 @@
-import { Course } from "tja-parser";
-import { getAverageDensity } from "./average-density";
-import { getFixedIntervalDensity } from "./fixed-interval-density";
-import { getSegmentalDensity } from "./segmental-density";
+import { Bar } from "tja-parser";
+import getAverageDensity from './average-density';
+import getIntervalDensity from './interval-density';
+import getSlidingWindowDensity from './sliding-window-density';
+import getSegmentalDensity from "./segmental-density";
 
-export function featurize(course: Course) {
-    const averageDensity = getAverageDensity(course);
-    const fixedIntervalDensity = getFixedIntervalDensity(course);
-    const segmentalDensity = getSegmentalDensity(course);
+export default function featurize(bars: Bar[]) {
+    const averageDensity = getAverageDensity(bars);
+    const intervalDensity = getIntervalDensity(bars);
+    const slidingWindowDensity = getSlidingWindowDensity(bars);
+    const segmentalDensity = getSegmentalDensity(bars);
 
     return {
         averageDensity,
-        fixedIntervalDensity,
-        segmentalDensity,
+        intervalDensity,
+        slidingWindowDensity,
+        segmentalDensity
     }
 }

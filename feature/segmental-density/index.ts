@@ -1,49 +1,18 @@
-﻿import { Bar, Course, HitNote } from "tja-parser";
-import { getSpecificBranch } from "../../util";
-import * as math from "mathjs";
+import { Bar } from "tja-parser";
+import { getHitNotes } from "../../util/hitnote";
+import * as math from 'mathjs';
 
-/**
- * Divides the course into N equal time segments and calculates the density (notes/s) for each.
- * @param course The TJA course to analyze
- * @param segments Number of segments to divide the course into (default: 20)
- * @returns An array of densities (vector)
- */
-export function getSegmentalDensity(course: Course, segments: number = 20): number[] {
-    const bars = getSpecificBranch(course, "master");
-    
-    // Extract all hit notes with their timings
-    const hitNotes = bars.flatMap(bar => bar.getNotes().filter(note => note instanceof HitNote)) as HitNote[];
+export default function getSegmentalDensity(bars: Bar[], segments: number = 10){
+    const hitNotes = getHitNotes(bars);
+    const hitNoteRange = math.subtract(hitNotes[hitNotes.length - 1].getTiming(), hitNotes[0].getTiming());
+    const startNote = hitNotes[0];
+    const interval = math.divide(hitNoteRange, segments) as math.Fraction;
 
-    if (hitNotes.length < 2) {
-        return new Array(segments).fill(0);
-    }
+    const segmentNoteCounts: number[] = new Array(segments).fill(null).map(() => 0);
+    hitNotes.forEach((note) => {
+        const index = Math.min(segments - 1, Math.floor(math.divide(math.subtract(note.getTiming(), startNote.getTiming()), interval).valueOf() as number));
+        segmentNoteCounts[index]++;
+    });
 
-    const startTime = hitNotes[0].getTiming();
-    const endTime = hitNotes[hitNotes.length - 1].getTiming();
-    const totalDuration = math.subtract(endTime, startTime);
-
-    if (math.smallerEq(totalDuration, 0)) {
-        return new Array(segments).fill(0);
-    }
-
-    const segmentDuration = math.divide(totalDuration, segments);
-    const densities: number[] = [];
-
-    for (let i = 0; i < segments; i++) {
-        const segStart = math.add(startTime, math.multiply(i, segmentDuration));
-        const segEnd = (i === segments - 1) 
-            ? math.add(endTime, 0.0001) // Include the very last note
-            : math.add(startTime, math.multiply(i + 1, segmentDuration));
-
-        const notesInSegment = hitNotes.filter(note => {
-            const t = note.getTiming();
-            return math.largerEq(t, segStart) && math.smaller(t, segEnd);
-        });
-
-        // Density = count / duration (in seconds)
-        const density = math.divide(notesInSegment.length, segmentDuration);
-        densities.push(1000 * (density.valueOf() as number));
-    }
-
-    return densities;
+    return segmentNoteCounts.map((e) => math.divide(e, interval).valueOf() as number * 1000);
 }

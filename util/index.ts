@@ -25,7 +25,7 @@ export function getSpecificBranch(course: Course, branch: 'normal' | 'advanced' 
 }
 
 
-export function getFirstNote(bars: Bar[]) {
+export function getFirstHitNote(bars: Bar[]) {
     for (const bar of bars) {
         for (const note of bar.getNotes()) {
             if (note instanceof HitNote) {
@@ -35,7 +35,7 @@ export function getFirstNote(bars: Bar[]) {
     }
 }
 
-export function getLastNote(bars: Bar[]){
+export function getLastHitNote(bars: Bar[]){
     for(const bar of bars.toReversed()){
         for(const note of bar.getNotes().toReversed()){
             if (note instanceof HitNote) {
