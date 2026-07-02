@@ -1,4 +1,5 @@
-import { Bar, Branch, Course, HitNote, NoteGroup } from "tja-parser";
+import { Bar, Branch, Course, HitNote } from "tja-parser";
+export * as math from 'mathjs';
 
 export function getSpecificBranch(course: Course, branch: 'normal' | 'advanced' | 'master'): Bar[] {
     const bars: Bar[] = [];
